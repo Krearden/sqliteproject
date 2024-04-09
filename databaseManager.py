@@ -36,8 +36,49 @@ class DatabaseManager:
             session.commit()
         else:
             print("Автомобиль с таким номером уже существует в базе данных.")
-
     
+    def update_car_brand(self, brand_name, new_brand_name):
+        """Обновляет название марки автомобиля."""
+        session = self.session
+        brand = session.query(CarBrand).filter(CarBrand.brand_name == brand_name).first()
+        if brand is not None:
+            brand.brand_name = new_brand_name
+            session.commit()
+        else:
+            print("Марка автомобиля с таким названием не найдена.")
+
+    def delete_car_brand(self, brand_name):
+        """Удаляет марку автомобиля."""
+        session = self.session
+        brand = session.query(CarBrand).filter(CarBrand.brand_name == brand_name).first()
+        if brand is not None:
+            session.delete(brand)
+            session.commit()
+        else:
+            print("Марка автомобиля с таким названием не найдена.")
+
+    def update_car(self, number, **kwargs):
+        """Обновляет информацию об автомобиле."""
+        session = self.session
+        car = session.query(Car).filter(Car.number == number).first()
+        if car is not None:
+            for key, value in kwargs.items():
+                if hasattr(car, key):
+                    setattr(car, key, value)
+            session.commit()
+        else:
+            print("Автомобиль с таким номером не найден.")
+
+    def delete_car(self, number):
+        """Удаляет автомобиль."""
+        session = self.session
+        car = session.query(Car).filter(Car.number == number).first()
+        if car is not None:
+            session.delete(car)
+            session.commit()
+        else:
+            print("Автомобиль с таким номером не найден.")
+
     def get_car_brand_by_name(self, session, brand_name):
         """Возвращает марку автомобиля по названию."""
         return session.query(CarBrand).filter(CarBrand.brand_name == brand_name).first()
