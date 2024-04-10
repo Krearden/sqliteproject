@@ -93,3 +93,16 @@ class DatabaseManager:
         session = self.session
         cars = session.query(Car).all()
         return cars
+    
+    def get_all_car_brands(self):
+        """Возвращает все марки автомобилей."""
+        session = self.session
+        car_brands = session.query(CarBrand).all()
+        return car_brands
+
+    def get_all_car_brand_names(self):
+        """Возвращает имена всех марок автомобилей."""
+        session = self.session
+        car_brand_names = [brand.brand_name for brand in session.query(CarBrand).all()]
+        return car_brand_names
+
