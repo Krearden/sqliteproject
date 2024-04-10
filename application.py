@@ -58,6 +58,10 @@ def create_window():
     update_button = tk.Button(tab1, text="Обновить", command=lambda: update_car(db_manager, tree))
     update_button.pack()
 
+    # Добавляем кнопку "Удалить"
+    delete_button = tk.Button(tab1, text="Удалить", command=lambda: delete_car(db_manager, tree))
+    delete_button.pack()
+
     tree.pack()
     window.mainloop()
 
@@ -171,6 +175,26 @@ def update_car(db_manager, tree):
     # Создаем кнопку "ОК"
     ok_button = tk.Button(update_window, text="ОК", command=lambda: update_car_and_close_window(db_manager, car_id_combobox.get(), owner_entry.get(), number_entry.get(), brand_combobox.get(), year_entry.get(), color_entry.get(), mileage_entry.get(), price_entry.get(), inspection_combobox.get() == "True", registration_date_entry.get_date(), update_window, tree))
     ok_button.grid(row=10, column=0, columnspan=2)
+
+def delete_car(db_manager, tree):
+    delete_window = tk.Toplevel()
+    delete_window.title("Удалить автомобиль")
+    delete_window.resizable(False, False)  # Запретить масштабирование окна
+
+    # Создаем раскрывающийся список со всеми имеющимися идентификаторами машин
+    tk.Label(delete_window, text="ID автомобиля").grid(row=0, column=0)
+    car_ids = db_manager.get_all_car_ids()
+    car_id_combobox = ttk.Combobox(delete_window, values=car_ids)
+    car_id_combobox.grid(row=0, column=1)
+
+    # Создаем кнопку "Удалить"
+    delete_button = tk.Button(delete_window, text="Удалить", command=lambda: delete_car_and_close_window(db_manager, car_id_combobox.get(), delete_window, tree))
+    delete_button.grid(row=1, column=0, columnspan=2)
+
+def delete_car_and_close_window(db_manager, car_id, delete_window, tree):
+    db_manager.delete_car_by_id(car_id)
+    delete_window.destroy()
+    update_tree(tree, db_manager)
 
 
 
