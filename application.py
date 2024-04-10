@@ -36,6 +36,22 @@ def create_cars_tree(tab, db_manager):
 
     return tree
 
+def create_brands_tree(tab, db_manager):
+    tree = ttk.Treeview(tab)
+    tree["columns"] = ("id", "brand_name", "car_count")
+    tree.column("#0", width=0, stretch=tk.NO)
+    tree.column("id", anchor=tk.W, width=100)
+    tree.column("brand_name", anchor=tk.W, width=100)
+    tree.column("car_count", anchor=tk.W, width=100)
+
+    tree.heading("id", text="ID", anchor=tk.W)
+    tree.heading("brand_name", text="Марка", anchor=tk.W)
+    tree.heading("car_count", text="Количество автомобилей", anchor=tk.W)
+
+    update_brands_tree(tree, db_manager)
+
+    return tree
+
 def create_window():
     window = tk.Tk()
     window.title("Машины")
@@ -43,27 +59,35 @@ def create_window():
 
     tab_control = ttk.Notebook(window)
     tab1 = ttk.Frame(tab_control)
+    tab2 = ttk.Frame(tab_control)
     tab_control.add(tab1, text='Машины')
+    tab_control.add(tab2, text='Бренды')
     tab_control.pack(expand=1, fill='both')
 
     db_manager = DatabaseManager(f'{DB_NAME}')
 
+    # Вкладка "Машины"
     tree = create_cars_tree(tab1, db_manager)
-
-    # Добавляем кнопку "Добавить"
     add_button = tk.Button(tab1, text="Добавить", command=lambda: add_car(db_manager, tree))
     add_button.pack()
-
-    # Добавляем кнопку "Обновить"
     update_button = tk.Button(tab1, text="Обновить", command=lambda: update_car(db_manager, tree))
     update_button.pack()
-
-    # Добавляем кнопку "Удалить"
     delete_button = tk.Button(tab1, text="Удалить", command=lambda: delete_car(db_manager, tree))
     delete_button.pack()
+    tree.pack(fill='both', expand=True)  # Измените эту строку
 
-    tree.pack()
+    # Вкладка "Бренды"
+    brands_tree = create_brands_tree(tab2, db_manager)
+    add_brand_button = tk.Button(tab2, text="Добавить", command=lambda: print("Добавить бренд"))
+    add_brand_button.pack()
+    update_brand_button = tk.Button(tab2, text="Обновить", command=lambda: print("Обновить бренд"))
+    update_brand_button.pack()
+    delete_brand_button = tk.Button(tab2, text="Удалить", command=lambda: print("Удалить бренд"))
+    delete_brand_button.pack()
+    brands_tree.pack(fill='both', expand=True)  # Измените эту строку
+
     window.mainloop()
+
 
 
 def validate_string(input):
@@ -230,3 +254,12 @@ def update_tree(tree, db_manager):
     for car in cars:
         if car.brand is not None:
             tree.insert("", "end", values=(car.id, car.owner, car.number, car.brand.brand_name, car.year, car.color, car.mileage, car.price, car.inspection, car.registration_date))
+
+def update_brands_tree(tree, db_manager):
+    # Очистка дерева
+    for i in tree.get_children():
+        tree.delete(i)
+    # Добавление новых данных
+    brands = db_manager.get_all_car_brands()
+    for brand in brands:
+        tree.insert("", "end", values=(brand.id, brand.brand_name, brand.car_count))
