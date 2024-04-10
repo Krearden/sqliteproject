@@ -105,4 +105,38 @@ class DatabaseManager:
         session = self.session
         car_brand_names = [brand.brand_name for brand in session.query(CarBrand).all()]
         return car_brand_names
+    
+    def get_all_car_ids(self):
+        """Возвращает все уникальные ID автомобилей."""
+        session = self.session
+        car_ids = [car.id for car in session.query(Car).all()]
+        return car_ids
+    
+    def delete_car_by_id(self, car_id):
+        """Удаляет автомобиль по ID."""
+        session = self.session
+        car = session.query(Car).filter(Car.id == car_id).first()
+        if car is not None:
+            session.delete(car)
+            session.commit()
+            print(f"Автомобиль с ID {car_id} успешно удален!")
+        else:
+            print(f"Автомобиль с ID {car_id} не найден.")
+    
+    def update_car_by_id(self, car_id, **kwargs):
+        """Обновляет автомобиль по ID."""
+        session = self.session
+        car = session.query(Car).filter(Car.id == car_id).first()
+        if car is not None:
+            for key, value in kwargs.items():
+                if hasattr(car, key):
+                    setattr(car, key, value)
+            session.commit()
+            print(f"Автомобиль с ID {car_id} успешно обновлен!")
+        else:
+            print(f"Автомобиль с ID {car_id} не найден.")
+
+
+
+
 
