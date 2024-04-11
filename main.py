@@ -9,6 +9,7 @@ from models import Base, CarBrand, Car
 from datetime import date
 
 
+
 def create_database(db_file):
     conn = sqlite3.connect(db_file)
     print(f"База данных {db_file} успешно создана!")

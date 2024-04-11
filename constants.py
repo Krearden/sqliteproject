@@ -1,6 +1,7 @@
 from datetime import date
 
 DB_NAME = 'mydb.db'
+BP_NAME = 'backup.db'
 INSERT_DATA = True
 
 car_brands = ["Lada", "Ford"]

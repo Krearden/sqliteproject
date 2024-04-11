@@ -2,9 +2,25 @@ import tkinter as tk
 from tkinter import ttk
 from databaseManager import DatabaseManager
 from constants import DB_NAME
+from constants import BP_NAME
 from tkcalendar import DateEntry
 from datetime import datetime
+import os
+import sys
+import shutil
 
+def backup_db(db_name, backup_name):
+    # Создаем резервную копию базы данных путем копирования файла
+    shutil.copy2(db_name, backup_name)
+
+def restore_db(backup_name, db_name):
+    # Восстанавливаем базу данных из резервной копии
+    shutil.copy2(backup_name, db_name)
+
+def restart_program():
+    """Перезапускает текущую программу."""
+    python = sys.executable
+    os.execl(python, python, * sys.argv)
 
 def create_cars_tree(tab, db_manager):
     tree = ttk.Treeview(tab)
@@ -63,11 +79,13 @@ def create_window():
     tab3 = ttk.Frame(tab_control)
     tab4 = ttk.Frame(tab_control)
     tab5 = ttk.Frame(tab_control)
+    tab6 = ttk.Frame(tab_control)
     tab_control.add(tab1, text='Машины')
     tab_control.add(tab2, text='Бренды')
     tab_control.add(tab3, text='Лада и Форд')
     tab_control.add(tab4, text='Без техосмотра')
     tab_control.add(tab5, text='Отчет «Автомобили»')
+    tab_control.add(tab6, text='Резервное копирование')
     tab_control.pack(expand=1, fill='both')
     
     db_manager = DatabaseManager(f'{DB_NAME}')
@@ -140,6 +158,17 @@ def create_window():
     update_query_button = tk.Button(tab5, text="Обновить запрос", command=lambda: update_cars_by_brand_tree(cars_by_brand_tree, db_manager, brand_name_var.get()))
     update_query_button.pack()
     cars_by_brand_tree.pack(fill='both', expand=True)
+
+
+    # Backup functional
+
+    # Кнопка "Создать копию"
+    backup_button = tk.Button(tab6, text="Создать копию", command=lambda: backup_db(DB_NAME, BP_NAME))
+    backup_button.pack()
+    
+    # Кнопка "Восстановить из копии"
+    restore_button = tk.Button(tab6, text="Восстановить из копии", command=lambda: (restore_db(BP_NAME, DB_NAME), restart_program()))
+    restore_button.pack()
 
     window.mainloop()
 
