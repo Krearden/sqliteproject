@@ -55,7 +55,7 @@ def create_brands_tree(tab, db_manager):
 def create_window():
     window = tk.Tk()
     window.title("Машины")
-    window.resizable(False, False)
+    window.resizable(False, True)
 
     tab_control = ttk.Notebook(window)
     tab1 = ttk.Frame(tab_control)
@@ -74,18 +74,22 @@ def create_window():
     update_button.pack()
     delete_button = tk.Button(tab1, text="Удалить", command=lambda: delete_car(db_manager, tree))
     delete_button.pack()
-    tree.pack(fill='both', expand=True)  # Измените эту строку
-
+    updatetab_button = tk.Button(tab1, text="Обновить таблицу", command=lambda: update_tree(tree, db_manager))
+    updatetab_button.pack()
+    
+    tree.pack(fill='both', expand=True)
+    
     # Вкладка "Бренды"
     brands_tree = create_brands_tree(tab2, db_manager)
-    add_brand_button = tk.Button(tab2, text="Добавить", command=lambda: print("Добавить бренд"))
+    add_brand_button = tk.Button(tab2, text="Добавить", command=lambda: add_brand(db_manager, brands_tree))
     add_brand_button.pack()
-    update_brand_button = tk.Button(tab2, text="Обновить", command=lambda: print("Обновить бренд"))
+    update_brand_button = tk.Button(tab2, text="Обновить", command=lambda: update_brand(db_manager, brands_tree))
     update_brand_button.pack()
-    delete_brand_button = tk.Button(tab2, text="Удалить", command=lambda: print("Удалить бренд"))
+    delete_brand_button = tk.Button(tab2, text="Удалить", command=lambda: delete_brand(db_manager, brands_tree))
     delete_brand_button.pack()
-    brands_tree.pack(fill='both', expand=True)  # Измените эту строку
-
+    updatetab_brand_button = tk.Button(tab2, text="Обновить таблицу", command=lambda: update_brands_tree(brands_tree, db_manager))
+    updatetab_brand_button.pack()
+    brands_tree.pack(fill='both', expand=True)
     window.mainloop()
 
 
@@ -215,12 +219,79 @@ def delete_car(db_manager, tree):
     delete_button = tk.Button(delete_window, text="Удалить", command=lambda: delete_car_and_close_window(db_manager, car_id_combobox.get(), delete_window, tree))
     delete_button.grid(row=1, column=0, columnspan=2)
 
+def add_brand(db_manager, tree):
+    add_window = tk.Toplevel()
+    add_window.title("Добавить бренд")
+    add_window.resizable(False, False)  # Запретить масштабирование окна
+
+    # Создаем поля для ввода данных
+    tk.Label(add_window, text="Название").grid(row=0, column=0)
+    name_entry = tk.Entry(add_window, validate="key", validatecommand=(add_window.register(validate_string), "%P"))
+    name_entry.grid(row=0, column=1)
+
+    # Создаем кнопку "ОК"
+    ok_button = tk.Button(add_window, text="ОК", command=lambda: create_brand_and_close_window(db_manager, name_entry.get(), add_window, tree))
+    ok_button.grid(row=9, column=0, columnspan=2)
+
+
+def update_brand(db_manager, tree):
+    update_window = tk.Toplevel()
+    update_window.title("Обновить бренд")
+    update_window.resizable(False, False)  # Запретить масштабирование окна
+
+    # Создаем поля для ввода данных
+    tk.Label(update_window, text="Старое название").grid(row=0, column=0)
+    old_name_entry = tk.Entry(update_window, validate="key", validatecommand=(update_window.register(validate_string), "%P"))
+    old_name_entry.grid(row=0, column=1)
+
+    tk.Label(update_window, text="Новое название").grid(row=1, column=0)
+    new_name_entry = tk.Entry(update_window, validate="key", validatecommand=(update_window.register(validate_string), "%P"))
+    new_name_entry.grid(row=1, column=1)
+
+    # Создаем кнопку "ОК"
+    ok_button = tk.Button(update_window, text="ОК", command=lambda: update_brand_and_close_window(db_manager, old_name_entry.get(), new_name_entry.get(), update_window, tree))
+    ok_button.grid(row=9, column=0, columnspan=2)
+
+
+def delete_brand(db_manager, tree):
+    delete_window = tk.Toplevel()
+    delete_window.title("Удалить бренд")
+    delete_window.resizable(False, False)  # Запретить масштабирование окна
+
+    # Создаем поля для ввода данных
+    tk.Label(delete_window, text="Название").grid(row=0, column=0)
+    name_entry = tk.Entry(delete_window, validate="key", validatecommand=(delete_window.register(validate_string), "%P"))
+    name_entry.grid(row=0, column=1)
+
+    # Создаем кнопку "ОК"
+    ok_button = tk.Button(delete_window, text="ОК", command=lambda: delete_brand_and_close_window(db_manager, name_entry.get(), delete_window, tree))
+    ok_button.grid(row=9, column=0, columnspan=2)
+
+
+def delete_brand_and_close_window(db_manager, brand_name, delete_window, tree):
+    db_manager.delete_car_brand(brand_name)
+    delete_window.destroy()
+    update_brands_tree(tree, db_manager)
+
+    
+
+def update_brand_and_close_window(db_manager, old_brand_name, new_brand_name, update_window, tree):
+    db_manager.update_car_brand(old_brand_name, new_brand_name)
+    update_window.destroy()
+    update_brands_tree(tree, db_manager)
+
+
+def create_brand_and_close_window(db_manager, brand_name, add_window, tree):
+    db_manager.create_car_brand(brand_name)
+    add_window.destroy()
+    update_brands_tree(tree, db_manager)
+
+
+
 def delete_car_and_close_window(db_manager, car_id, delete_window, tree):
     db_manager.delete_car_by_id(car_id)
     delete_window.destroy()
     update_tree(tree, db_manager)
-
-
 
 def create_car(db_manager, owner, number, brand, year, color, mileage, price, inspection, registration_date):
     # Создание нового автомобиля

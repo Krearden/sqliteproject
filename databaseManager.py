@@ -37,25 +37,35 @@ class DatabaseManager:
         else:
             print("Автомобиль с таким номером уже существует в базе данных.")
     
-    def update_car_brand(self, brand_name, new_brand_name):
-        """Обновляет название марки автомобиля."""
+    def update_car_brand(self, old_brand_name, new_brand_name):
+        """Обновляет название бренда автомобиля."""
         session = self.session
-        brand = session.query(CarBrand).filter(CarBrand.brand_name == brand_name).first()
+        brand = session.query(CarBrand).filter(CarBrand.brand_name == old_brand_name).first()
         if brand is not None:
             brand.brand_name = new_brand_name
+            cars = session.query(Car).filter(Car.brand_id == brand.id).all()
+            for car in cars:
+                car.brand = brand
             session.commit()
+            print(f"Бренд автомобиля '{old_brand_name}' успешно обновлен на '{new_brand_name}'!")
         else:
-            print("Марка автомобиля с таким названием не найдена.")
+            print(f"Бренд автомобиля с названием '{old_brand_name}' не найден.")
+
 
     def delete_car_brand(self, brand_name):
-        """Удаляет марку автомобиля."""
+        """Удаляет бренд автомобиля и все связанные с ним автомобили."""
         session = self.session
         brand = session.query(CarBrand).filter(CarBrand.brand_name == brand_name).first()
         if brand is not None:
+            cars = session.query(Car).filter(Car.brand_id == brand.id).all()
+            for car in cars:
+                session.delete(car)
             session.delete(brand)
             session.commit()
+            print(f"Бренд автомобиля '{brand_name}' и все связанные с ним автомобили успешно удалены!")
         else:
-            print("Марка автомобиля с таким названием не найдена.")
+            print(f"Бренд автомобиля с названием '{brand_name}' не найден.")
+
 
     def update_car(self, number, **kwargs):
         """Обновляет информацию об автомобиле."""
@@ -117,11 +127,15 @@ class DatabaseManager:
         session = self.session
         car = session.query(Car).filter(Car.id == car_id).first()
         if car is not None:
+            car_brand = session.query(CarBrand).filter(CarBrand.id == car.brand_id).first()
+            if car_brand is not None:
+                car_brand.car_count -= 1  # Уменьшаем количество автомобилей для марки
             session.delete(car)
             session.commit()
             print(f"Автомобиль с ID {car_id} успешно удален!")
         else:
             print(f"Автомобиль с ID {car_id} не найден.")
+
     
     def update_car_by_id(self, car_id, **kwargs):
         """Обновляет автомобиль по ID."""
