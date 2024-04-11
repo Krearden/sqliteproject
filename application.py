@@ -60,10 +60,16 @@ def create_window():
     tab_control = ttk.Notebook(window)
     tab1 = ttk.Frame(tab_control)
     tab2 = ttk.Frame(tab_control)
+    tab3 = ttk.Frame(tab_control)
+    tab4 = ttk.Frame(tab_control)
+    tab5 = ttk.Frame(tab_control)
     tab_control.add(tab1, text='Машины')
     tab_control.add(tab2, text='Бренды')
+    tab_control.add(tab3, text='Лада и Форд')
+    tab_control.add(tab4, text='Без техосмотра')
+    tab_control.add(tab5, text='Отчет «Автомобили»')
     tab_control.pack(expand=1, fill='both')
-
+    
     db_manager = DatabaseManager(f'{DB_NAME}')
 
     # Вкладка "Машины"
@@ -76,6 +82,8 @@ def create_window():
     delete_button.pack()
     updatetab_button = tk.Button(tab1, text="Обновить таблицу", command=lambda: update_tree(tree, db_manager))
     updatetab_button.pack()
+    
+    
     
     tree.pack(fill='both', expand=True)
     
@@ -90,6 +98,49 @@ def create_window():
     updatetab_brand_button = tk.Button(tab2, text="Обновить таблицу", command=lambda: update_brands_tree(brands_tree, db_manager))
     updatetab_brand_button.pack()
     brands_tree.pack(fill='both', expand=True)
+    
+
+    # Запрос 1
+    # Добавление текста задания
+    query_text = "Создать запрос, позволяющий получить номера машин Лада и Форд, зарегистрированных ранее 01.01.2015. Структура запроса: «Владелец», «Номер», «Марка», «Год Выпуска», «Дата Регистрации». Записи отсортировать по дате регистрации."
+    query_label = tk.Label(tab3, text=query_text, wraplength=400)
+    query_label.pack()
+
+    lada_and_ford_cars_tree = create_lada_and_ford_cars_tree(tab3, db_manager)
+    update_query_button = tk.Button(tab3, text="Обновить запрос", command=lambda: update_lada_and_ford_cars_tree(lada_and_ford_cars_tree, db_manager))
+    update_query_button.pack()
+    lada_and_ford_cars_tree.pack(fill='both', expand=True)
+
+
+    # Запрос 2
+    # Добавление текста задания
+    query_text = "Создать запрос, позволяющий получить список владельцев автомобилей, не прошедших техосмотр. Структура запроса: «Владелец», «Номер», «Марка», «Год Выпуска», «Пробег», «Техосмотр», «Дата Регистрации». Записи отсортировать по фамилиям владельцев."
+    query_label = tk.Label(tab4, text=query_text, wraplength=400)
+    query_label.pack()
+
+    cars_without_inspection_tree = create_cars_without_inspection_tree(tab4, db_manager)
+    update_query_button = tk.Button(tab4, text="Обновить запрос", command=lambda: update_cars_without_inspection_tree(cars_without_inspection_tree, db_manager))
+    update_query_button.pack()
+    cars_without_inspection_tree.pack(fill='both', expand=True)
+
+
+    #Отчет
+    query_text = "Создать отчет «Автомобили». Включить группировку по марке автомобиля."
+    query_label = tk.Label(tab5, text=query_text, wraplength=400)
+    query_label.pack()
+
+    # Создание раскрывающегося списка брендов
+    brand_names = db_manager.get_all_car_brand_names()
+    brand_name_var = tk.StringVar(tab5)
+    brand_name_var.set(brand_names[0])  # установка первого бренда по умолчанию
+    brand_name_dropdown = tk.OptionMenu(tab5, brand_name_var, *brand_names)
+    brand_name_dropdown.pack()
+
+    cars_by_brand_tree = create_cars_by_brand_tree(tab5, db_manager)
+    update_query_button = tk.Button(tab5, text="Обновить запрос", command=lambda: update_cars_by_brand_tree(cars_by_brand_tree, db_manager, brand_name_var.get()))
+    update_query_button.pack()
+    cars_by_brand_tree.pack(fill='both', expand=True)
+
     window.mainloop()
 
 
@@ -233,7 +284,6 @@ def add_brand(db_manager, tree):
     ok_button = tk.Button(add_window, text="ОК", command=lambda: create_brand_and_close_window(db_manager, name_entry.get(), add_window, tree))
     ok_button.grid(row=9, column=0, columnspan=2)
 
-
 def update_brand(db_manager, tree):
     update_window = tk.Toplevel()
     update_window.title("Обновить бренд")
@@ -252,7 +302,6 @@ def update_brand(db_manager, tree):
     ok_button = tk.Button(update_window, text="ОК", command=lambda: update_brand_and_close_window(db_manager, old_name_entry.get(), new_name_entry.get(), update_window, tree))
     ok_button.grid(row=9, column=0, columnspan=2)
 
-
 def delete_brand(db_manager, tree):
     delete_window = tk.Toplevel()
     delete_window.title("Удалить бренд")
@@ -267,26 +316,20 @@ def delete_brand(db_manager, tree):
     ok_button = tk.Button(delete_window, text="ОК", command=lambda: delete_brand_and_close_window(db_manager, name_entry.get(), delete_window, tree))
     ok_button.grid(row=9, column=0, columnspan=2)
 
-
 def delete_brand_and_close_window(db_manager, brand_name, delete_window, tree):
     db_manager.delete_car_brand(brand_name)
     delete_window.destroy()
     update_brands_tree(tree, db_manager)
-
-    
 
 def update_brand_and_close_window(db_manager, old_brand_name, new_brand_name, update_window, tree):
     db_manager.update_car_brand(old_brand_name, new_brand_name)
     update_window.destroy()
     update_brands_tree(tree, db_manager)
 
-
 def create_brand_and_close_window(db_manager, brand_name, add_window, tree):
     db_manager.create_car_brand(brand_name)
     add_window.destroy()
     update_brands_tree(tree, db_manager)
-
-
 
 def delete_car_and_close_window(db_manager, car_id, delete_window, tree):
     db_manager.delete_car_by_id(car_id)
@@ -314,7 +357,49 @@ def update_car_and_close_window(db_manager, car_id, owner, number, brand_name, y
     update_window.destroy()
     update_tree(tree, db_manager)
 
+def create_lada_and_ford_cars_tree(tab, db_manager):
+    tree = ttk.Treeview(tab, show='headings')  # Добавьте здесь
+    tree["columns"] = ("Владелец", "Номер", "Марка", "Год Выпуска", "Дата Регистрации")
+    for column in tree["columns"]:
+        tree.heading(column, text=column)
+    update_lada_and_ford_cars_tree(tree, db_manager)
+    return tree
 
+def update_lada_and_ford_cars_tree(tree, db_manager):
+    for i in tree.get_children():
+        tree.delete(i)
+    cars = db_manager.get_lada_and_ford_cars()
+    for car in cars:
+        tree.insert("", "end", values=(car.owner, car.number, car.brand.brand_name, car.year, car.registration_date))
+
+def create_cars_without_inspection_tree(tab, db_manager):
+    tree = ttk.Treeview(tab, show='headings')
+    tree["columns"] = ("Владелец", "Номер", "Марка", "Год Выпуска", "Пробег", "Техосмотр", "Дата Регистрации")
+    for column in tree["columns"]:
+        tree.heading(column, text=column)
+    update_cars_without_inspection_tree(tree, db_manager)
+    return tree
+
+def update_cars_without_inspection_tree(tree, db_manager):
+    for i in tree.get_children():
+        tree.delete(i)
+    cars = db_manager.get_cars_without_inspection()
+    for car in cars:
+        tree.insert("", "end", values=(car.owner, car.number, car.brand.brand_name, car.year, car.mileage, car.inspection, car.registration_date))
+
+def create_cars_by_brand_tree(tab, db_manager):
+    tree = ttk.Treeview(tab, show='headings')
+    tree["columns"] = ("Владелец", "Номер", "Марка", "Год Выпуска", "Пробег", "Техосмотр", "Дата Регистрации")
+    for column in tree["columns"]:
+        tree.heading(column, text=column)
+    return tree
+
+def update_cars_by_brand_tree(tree, db_manager, brand_name):
+    for i in tree.get_children():
+        tree.delete(i)
+    cars = db_manager.get_cars_by_brand(brand_name)
+    for car in cars:
+        tree.insert("", "end", values=(car.owner, car.number, car.brand.brand_name, car.year, car.mileage, car.inspection, car.registration_date))
 
 def update_tree(tree, db_manager):
     # Очистка дерева

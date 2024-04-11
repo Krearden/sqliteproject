@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from datetime import date
+from datetime import datetime
 from models import CarBrand, Car
 
 
@@ -67,6 +67,15 @@ class DatabaseManager:
             print(f"Бренд автомобиля с названием '{brand_name}' не найден.")
 
 
+    def get_lada_and_ford_cars(self):
+        """Возвращает автомобили марок Лада и Форд, зарегистрированные до 01.01.2015."""
+        session = self.session
+        lada_and_ford_cars = session.query(Car).join(CarBrand).filter(
+            CarBrand.brand_name.in_(["Lada", "Ford"]),
+            Car.registration_date < datetime(2015, 1, 1)
+        ).order_by(Car.registration_date).all()
+        return lada_and_ford_cars
+
     def update_car(self, number, **kwargs):
         """Обновляет информацию об автомобиле."""
         session = self.session
@@ -92,6 +101,26 @@ class DatabaseManager:
     def get_car_brand_by_name(self, session, brand_name):
         """Возвращает марку автомобиля по названию."""
         return session.query(CarBrand).filter(CarBrand.brand_name == brand_name).first()
+    
+    def get_cars_without_inspection(self):
+        """Возвращает автомобили, которые не прошли техосмотр."""
+        session = self.session
+        cars_without_inspection = session.query(Car).join(CarBrand).filter(
+            Car.inspection == False
+        ).order_by(Car.owner).all()
+        return cars_without_inspection
+
+    def get_cars_by_brand(self, brand_name):
+        """Возвращает все автомобили указанного бренда."""
+        session = self.session
+        brand = session.query(CarBrand).filter(CarBrand.brand_name == brand_name).first()
+        if brand is not None:
+            cars = session.query(Car).filter(Car.brand_id == brand.id).all()
+            return cars
+        else:
+            return []
+
+
     
     def load_data(self, car_brands, cars):
         for brand_name in car_brands:
